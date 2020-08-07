@@ -1,0 +1,8 @@
+rootProject.name = 'budgetreactnativedemo'
+include ':react-native-vector-icons'
+project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
+
+include ':react-native-hms-ads'
+project(':react-native-hms-ads').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-hms-ads/android')
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
