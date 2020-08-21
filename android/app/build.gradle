@@ -149,13 +149,13 @@ android {
         release {
             storeFile file('keystore.jks')
             storePassword '123456'
-            keyAlias 'accountkitshowcase'
+            keyAlias 'key'
             keyPassword '123456'
         }
         debug {
             storeFile file('keystore.jks')
             storePassword '123456'
-            keyAlias 'accountkitshowcase'
+            keyAlias 'key'
             keyPassword '123456'
         }
     }

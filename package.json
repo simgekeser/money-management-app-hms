@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hmscore/react-native-hms-account": "^5.0.0",
+    "@hmscore/react-native-hms-iap": "^5.0.0",
     "@hmscore/react-native-hwpush": "^4.0.4",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/masked-view": "^0.1.10",
@@ -22,6 +23,7 @@
     "react-native": "0.63.2",
     "react-native-chart-kit": "^6.4.1",
     "react-native-gesture-handler": "^1.7.0",
+    "react-native-ha-interface": "./node_modules/react-native-ha-interface",
     "react-native-keyboard-aware-scroll-view": "^0.9.2",
     "react-native-modalbox": "^2.0.0",
     "react-native-reanimated": "^1.10.1",

@@ -4,13 +4,13 @@
 		"url":"connect-dre.hispace.hicloud.com"
 	},
 	"client":{
-		"cp_id":"5190090000026360265",
-		"product_id":"736430079244554139",
-		"client_id":"402189468301264000",
-		"client_secret":"A369705CBE70C57879318503BA523DAA1F4FB107818FC6948C4A6E9D43A4DB2A",
-		"app_id":"102530397",
+		"cp_id":"80090000000644097",
+		"product_id":"736430079244596090",
+		"client_id":"426091887103837184",
+		"client_secret":"346BC0DFD487B8FA3AF266AB6C6DF59B58BFA7E102E0BC39CC6ABEC617F8BFD1",
+		"app_id":"102710953",
 		"package_name":"com.budgetreactnativedemo",
-		"api_key":"CgB6e3x9lAVrmLkPfWPAfE7TVn4IZAN8eHGaUPNABYkodhqdqR1SkdNa8tHr/fDlZeWJu3GTvLhpqwvRtjH/v3Ws"
+		"api_key":"CgB6e3x9mer6SWQSSWZpni8WbP7bXYtDAY6rXE1bcaAc7GRydcZPUoKbcaRTToZ4NPl/aHmnK++8knQ8SL/vIuHm"
 	},
 	"service":{
 		"analytics":{
