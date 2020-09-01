@@ -1,6 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, {Component} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {NativeModules, View, StyleSheet, ActivityIndicator} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator, HeaderBackButton} from '@react-navigation/stack';
 import {LoginScreen} from './src/auth';
@@ -9,7 +8,6 @@ import {
   ProfilScreen,
   DataScreen,
   DetailScreen,
-  MapDetailScreen,
 } from './src/screens';
 import Ionicons from 'react-native-vector-icons/FontAwesome5';
 import {DeviceEventEmitter} from 'react-native';
@@ -51,23 +49,8 @@ function HomeStack() {
     </Stack.Navigator>
   );
 }
-function DataStack() {
-  return (
-    <Stack.Navigator initialRouteName="Data">
-      <Stack.Screen
-        name="DataScreen"
-        component={DataScreen}
-        options={navOptionHandler}
-      />
-      <Stack.Screen
-        name="MapDetailScreen"
-        component={MapDetailScreen}
-        options={navOptionHandler}
-      />
-    </Stack.Navigator>
-  );
-}
 function AppStack(props) {
+  //console.log('nav', props);
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
@@ -89,7 +72,7 @@ function AppStack(props) {
         },
       })}>
       <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Data" component={DataStack} />
+      <Tab.Screen name="Data" component={DataScreen} />
       <Tab.Screen
         name="Profil"
         children={() => <ProfilScreen props={props} />}
@@ -101,42 +84,25 @@ const navOptionHandler = () => ({
   headerShown: false,
 });
 
-export default function App() {
-  const [isLogged, setIsLogged] = useState(false);
-  const [isLoading, setLoading] = useState(true);
+export default class App extends Component {
+  constructor(props) {
+    super(props);
 
-  useEffect(() => {
-    DeviceEventEmitter.addListener('dashboardEmitterLogin', e => {
-      console.log('e', e);
-      setIsLogged(e);
+    this.state = {
+      isLogged: false,
+      route: [],
+    };
+  }
+  componentDidUnMount() {
+    DeviceEventEmitter.addListener('dashboardEmitterLogout', e => {
+      this.setState({isLogged: e});
     });
-
-    NativeModules.HMSAuthservice.getCurrentUser().then(user => {
-      if (user !== null) {
-        setIsLogged(true);
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
-    });
-    return () => {};
-  }, [isLogged]);
-  console.log('logged', isLogged);
-
-  return isLoading ? (
-    <View style={styles.container}>
-      <ActivityIndicator />
-      <ActivityIndicator size="large" color="#00ff00" />
-    </View>
-  ) : (
-    <NavigationContainer>
-      {isLogged ? <AppStack /> : <AuthStack />}
-    </NavigationContainer>
-  );
+  }
+  render() {
+    return (
+      <NavigationContainer>
+        {this.state.isLogged ? <AppStack /> : <AuthStack />}
+      </NavigationContainer>
+    );
+  }
 }
-const styles = StyleSheet.create({
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-});

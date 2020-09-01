@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
 import {
   Text,
+  Button,
   Picker,
   View,
   StyleSheet,
   DeviceEventEmitter,
   TouchableOpacity,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {Card, List} from '../component';
@@ -99,6 +102,7 @@ export class HomeScreen extends Component {
     this._getData();
   };
   async componentDidMount() {
+    AsyncStorage.removeItem('premium');
     DeviceEventEmitter.addListener('dashboardEmitter', e => {
       this.setState({isPremium: e});
     });

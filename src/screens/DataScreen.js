@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Button,
   ToastAndroid,
-  TouchableOpacity,
   Text,
   Dimensions,
 } from 'react-native';
@@ -131,42 +130,13 @@ export class DataScreen extends Component {
     };
     return (
       <View style={styles.main}>
-        <View
-          style={{
-            flexDirection: 'row',
-          }}>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              paddingLeft: 10,
-              paddingTop: 20,
-            }}>
-            <Ionicons name={'arrow-left'} size={30} color={'#6D1F4A'} />
-          </TouchableOpacity>
-          <View style={styles.analyseTextView}>
-            <Ionicons name={'chart-bar'} size={35} color={'#6D1F4A'} />
-            <Text
-              style={{
-                fontSize: 12,
-                color: '#6D1F4A',
-                fontWeight: 'bold',
-              }}>
-              Analyse Your Money
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              alignItems: 'flex-end',
-              paddingRight: 10,
-              paddingTop: 20,
-            }}
-            onPress={() => {
-              this.props.navigation.navigate('MapDetailScreen');
-            }}>
-            <Ionicons name={'map-marked-alt'} size={30} color={'#6D1F4A'} />
-          </TouchableOpacity>
+        <View style={styles.analyseTextView}>
+          <Ionicons name={'chart-bar'} size={35} color={'#6D1F4A'} />
+          <Text style={{fontSize: 17, color: '#6D1F4A', fontWeight: 'bold'}}>
+            Analyse Your Money
+          </Text>
         </View>
+
         <PieChart
           data={[
             {
@@ -231,10 +201,14 @@ export class DataScreen extends Component {
           }}
           accessor="population"
           backgroundColor="transparent"
-          paddingLeft="10"
+          paddingLeft="15"
           absolute //for the absolute number remove if you want percentage
         />
-        <View style={{flex: 1, paddingTop: 30, alignItems: 'center'}}>
+        <View
+          style={{
+            marginTop: 50,
+            alignItems: 'center',
+          }}>
           <BarChart
             data={{
               labels: ['Transport', 'Home', 'Market', 'Shop', 'Fun', 'Other'],
@@ -269,13 +243,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
   },
-
-  analyseTextView: {
-    flex: 1,
-    paddingBottom: 10,
-    backgroundColor: '#D8C0F6',
-    alignItems: 'center',
+  btnContainer: {
     marginTop: 20,
+  },
+  viewcontainer: {
+    marginTop: 20,
+    height: 38,
+  },
+  analyseTextView: {
+    width: '50%',
+    alignItems: 'center',
+    backgroundColor: '#E5DEE3',
+    marginBottom: 20,
     borderRadius: 8,
+    padding: 10,
   },
 });
