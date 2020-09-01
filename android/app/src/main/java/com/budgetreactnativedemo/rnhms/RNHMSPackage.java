@@ -2,6 +2,7 @@ package com.budgetreactnativedemo.rnhms;
 
 import androidx.annotation.NonNull;
 
+import com.budgetreactnativedemo.rnhms.authservice.RNHMSAuthservice;
 import com.budgetreactnativedemo.rnhms.crash.RNHMSCrash;
 import com.budgetreactnativedemo.rnhms.identity.RNHMSIdentity;
 import com.facebook.react.ReactPackage;
@@ -20,6 +21,7 @@ public class RNHMSPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new RNHMSIdentity(reactContext));
         modules.add(new RNHMSCrash(reactContext));
+        modules.add(new RNHMSAuthservice(reactContext));
         return modules;
     }
 

@@ -17,7 +17,6 @@ import RNHMSAccount from '@hmscore/react-native-hms-account';
 import AsyncStorage from '@react-native-community/async-storage';
 import Ionicons from 'react-native-vector-icons/FontAwesome5';
 import HmsIapModule from '@hmscore/react-native-hms-iap';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 var screen = Dimensions.get('window');
 
@@ -34,12 +33,9 @@ const onCancelAuthorization = () => {
     });
 };
 const onSignOut = () => {
-  RNHMSAccount.HmsAccount.signOut()
-    .then(response => {
-      console.log(response);
-      DeviceEventEmitter.emit('dashboardEmitterLogout', false);
-    })
-    .catch(err => {});
+  NativeModules.HMSAuthservice.signOut();
+  onCancelAuthorization();
+  DeviceEventEmitter.emit('dashboardEmitterLogin', false);
 };
 
 export class ProfilScreen extends Component {
@@ -51,6 +47,8 @@ export class ProfilScreen extends Component {
       budget: 0,
       placeHolderBudget: 0,
       isPremium: false,
+      photoUriString: '',
+      name: '',
       value: 0,
     };
   }
@@ -59,6 +57,15 @@ export class ProfilScreen extends Component {
     const limit = JSON.parse(await AsyncStorage.getItem('limit'));
     const budget = JSON.parse(await AsyncStorage.getItem('budget'));
 
+    NativeModules.HMSAuthservice.getCurrentUser().then(userPhoto => {
+      console.log('userprofil', userPhoto);
+      if (userPhoto !== null) {
+        this.setState({photoUriString: userPhoto});
+        console.log('userprofil', user);
+      } else {
+        console.log('userprofil error', user);
+      }
+    });
     this.setState({
       isPremium: isPremium,
       value: limit,
@@ -68,11 +75,15 @@ export class ProfilScreen extends Component {
 
     console.log('limit', this.state.limit);
     if (!isPremium) {
-      this.setState({modalVisible: true});
+      this.setState({
+        modalVisible: true,
+      });
     }
   }
   setModalVisible = visible => {
-    this.setState({modalVisible: visible});
+    this.setState({
+      modalVisible: visible,
+    });
   };
   purchasePremium = async () => {
     try {
@@ -86,7 +97,9 @@ export class ProfilScreen extends Component {
 
       if (result.a === 0) {
         AsyncStorage.setItem('premium', JSON.stringify(true));
-        this.setState({isPremium: true});
+        this.setState({
+          isPremium: true,
+        });
         this.setModalVisible(false);
         this.updatePremium();
         console.log('Purchase was successful.');
@@ -98,12 +111,17 @@ export class ProfilScreen extends Component {
     }
   };
   updatePremium = () => {
-    this.setState({isPremium: true}, () =>
-      DeviceEventEmitter.emit('dashboardEmitter', true),
+    this.setState(
+      {
+        isPremium: true,
+      },
+      () => DeviceEventEmitter.emit('dashboardEmitter', true),
     );
   };
   setLimit = async value => {
-    this.setState({value});
+    this.setState({
+      value,
+    });
     console.log('limit', value);
     AsyncStorage.setItem('limit', JSON.stringify(this.state.value));
   };
@@ -119,199 +137,261 @@ export class ProfilScreen extends Component {
     console.log('props', props);
     return (
       <View style={styles.main}>
-        <KeyboardAwareScrollView>
-          <View style={{alignItems: 'flex-end'}}>
-            <Ionicons
-              name="sign-out-alt"
-              size={45}
-              color="grey"
-              onPress={onCancelAuthorization}
-            />
-          </View>
-          <View style={{flex: 1, alignItems: 'center', paddingBottom: 60}}>
-            <Image
-              style={{
-                flex: 1,
-                width: 110,
-                height: 110,
-                resizeMode: 'cover',
-                borderRadius: 400 / 2,
-              }}
-              source={{uri: props.route.params.photoUri}}
-            />
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                flexDirection: 'row',
-              }}>
-              <Text
-                style={{
-                  paddingTop: 10,
-                  fontSize: 17,
-                  color: '#4A1D40',
-                  fontWeight: 'bold',
-                }}>
-                Dear, {props.route.params.name}
-              </Text>
-              {this.state.isPremium ? (
-                <View style={{alignItems: 'center'}}>
-                  <Ionicons
-                    name="crown"
-                    size={25}
-                    color="#E57600"
-                    style={{paddingTop: 5, marginLeft: 5}}
-                  />
-                </View>
-              ) : null}
-            </View>
-          </View>
+        <View
+          style={{
+            alignItems: 'flex-end',
+          }}>
+          <Ionicons
+            name="sign-out-alt"
+            size={45}
+            color="grey"
+            onPress={onSignOut}
+          />
+        </View>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            paddingBottom: 60,
+          }}>
+          <Image
+            style={styles.imageView}
+            source={{
+              uri: this.state.photoUriString,
+            }}
+          />
           <View
             style={{
-              backgroundColor: '',
-              alignItems: 'center',
+              flex: 1,
+              justifyContent: 'center',
               flexDirection: 'row',
             }}>
-            <Text style={{flex: 1, fontSize: 12}}>Add Budget Monthly</Text>
-            <TextInput
-              style={{
-                flex: 1,
-                height: 40,
-                marginRight: 6,
-                borderColor: 'gray',
-                elevation: 2,
-              }}
-              placeholder={JSON.stringify(this.state.placeHolderBudget)}
-              onChangeText={text => {
-                this.setState({budget: text});
-              }}
-            />
-            <Button title="Add" color="#E57600" onPress={this.addBudget} />
-          </View>
-          <View
-            style={{
-              backgroundColor: 'white',
-              alignItems: 'center',
-              flexDirection: 'row',
-              paddingTop: 20,
-            }}>
-            <Text style={{fontSize: 12}}>Set Limit Monthly</Text>
             <Text
-              style={{flex: 2, fontSize: 12, width: 50, textAlign: 'center'}}>
-              {Math.floor(this.state.value)}
+              style={{
+                paddingTop: 10,
+                fontSize: 17,
+                color: '#4A1D40',
+                fontWeight: 'bold',
+              }}>
+              Dear, {this.state.name}
             </Text>
-            <Slider
-              maximumValue={6500}
-              step={100}
-              style={{width: '50%', height: 40, flex: 2}}
-              value={this.state.value}
-              onValueChange={this.setLimit}
-            />
-          </View>
-          <View
-            style={{
-              flex: 2,
-              justifyContent: 'flex-start',
-            }}>
-            {this.state.isPremium ? null : (
-              <View style={{alignItems: 'center'}}>
-                <TouchableHighlight
-                  style={{
-                    alignItems: 'center',
-                    backgroundColor: '#E57600',
-                    borderRadius: 12,
-                    padding: 10,
-                    marginTop: 40,
-                    elevation: 2,
-                    width: '30%',
-                  }}
-                  onPress={this.purchasePremium}>
-                  <View style={{alignItems: 'center'}}>
-                    <Text style={{color: 'white'}}>Go Premium</Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        width: screen.width / 3,
-                        justifyContent: 'center',
-                      }}>
-                      <Ionicons
-                        name={'lira-sign'}
-                        size={15}
-                        color={'white'}
-                        style={{paddingTop: 2}}
-                      />
-                      <Text style={styles.textStyle}>1.00</Text>
-                    </View>
-                  </View>
-                </TouchableHighlight>
-              </View>
-            )}
-          </View>
-          <Modal
-            animationType="slide"
-            visible={this.state.modalVisible}
-            transparent={true}
-            onRequestClose={() => {
-              this.setModalVisible(!this.state.modalVisible);
-              //alert("Modal has been closed.");
-            }}>
-            <View style={styles.modalView}>
-              <View style={{backgroundColor: 'grey', padding: 10}}>
-                <Ionicons
-                  name="window-close"
-                  size={30}
-                  color="white"
-                  onPress={() => {
-                    this.setModalVisible(!this.state.modalVisible);
-                  }}
-                />
-              </View>
-
+            {this.state.isPremium ? (
               <View
                 style={{
-                  flex: 1,
-                  backgroundColor: 'grey',
                   alignItems: 'center',
-                  justifyContent: 'center',
                 }}>
                 <Ionicons
                   name="crown"
-                  size={45}
-                  color="white"
-                  style={{marginBottom: 30}}
+                  size={25}
+                  color="#E57600"
+                  style={{
+                    paddingTop: 5,
+                    marginLeft: 5,
+                  }}
                 />
-                <Text
-                  style={{fontSize: 17, color: 'white', fontWeight: 'bold'}}>
-                  REMOVE ADS
-                </Text>
-                <Text style={styles.modalText}>
-                  Enjoy and ad-free experience while controlling your budget
-                </Text>
-                <TouchableHighlight
-                  style={styles.openButton}
-                  onPress={this.purchasePremium}>
-                  <View style={{alignItems: 'center'}}>
-                    <Text style={{color: 'white'}}>Go Premium</Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        width: screen.width / 3,
-                        justifyContent: 'center',
-                      }}>
-                      <Ionicons
-                        name={'lira-sign'}
-                        size={15}
-                        color={'white'}
-                        style={{paddingTop: 2}}
-                      />
-                      <Text style={styles.textStyle}>1.00</Text>
-                    </View>
-                  </View>
-                </TouchableHighlight>
               </View>
+            ) : null}
+          </View>
+        </View>
+        <View
+          style={{
+            backgroundColor: '',
+            alignItems: 'center',
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 12,
+            }}>
+            Add Budget Monthly
+          </Text>
+          <TextInput
+            style={{
+              flex: 1,
+              height: 40,
+              marginRight: 6,
+              borderColor: 'gray',
+              elevation: 2,
+            }}
+            placeholder={JSON.stringify(this.state.placeHolderBudget)}
+            onChangeText={text => {
+              this.setState({
+                budget: text,
+              });
+            }}
+          />
+          <Button title="Add" color="#E57600" onPress={this.addBudget} />
+        </View>
+        <View
+          style={{
+            backgroundColor: 'white',
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingTop: 20,
+          }}>
+          <Text
+            style={{
+              fontSize: 12,
+            }}>
+            Set Limit Monthly
+          </Text>
+          <Text
+            style={{
+              flex: 2,
+              fontSize: 12,
+              width: 50,
+              textAlign: 'center',
+            }}>
+            {Math.floor(this.state.value)}
+          </Text>
+          <Slider
+            maximumValue={6500}
+            step={100}
+            style={{
+              width: '50%',
+              height: 40,
+              flex: 2,
+            }}
+            value={this.state.value}
+            onValueChange={this.setLimit}
+          />
+        </View>
+        <View
+          style={{
+            flex: 2,
+            justifyContent: 'flex-start',
+          }}>
+          {this.state.isPremium ? null : (
+            <View
+              style={{
+                alignItems: 'center',
+              }}>
+              <TouchableHighlight
+                style={{
+                  alignItems: 'center',
+                  backgroundColor: '#E57600',
+                  borderRadius: 12,
+                  padding: 10,
+                  marginTop: 40,
+                  elevation: 2,
+                  width: '30%',
+                }}
+                onPress={this.purchasePremium}>
+                <View
+                  style={{
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      color: 'white',
+                    }}>
+                    Go Premium
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      width: screen.width / 3,
+                      justifyContent: 'center',
+                    }}>
+                    <Ionicons
+                      name={'lira-sign'}
+                      size={15}
+                      color={'white'}
+                      style={{
+                        paddingTop: 2,
+                      }}
+                    />
+                    <Text style={styles.textStyle}> 1.00 </Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
             </View>
-          </Modal>
-        </KeyboardAwareScrollView>
+          )}
+        </View>
+        <Modal
+          animationType="slide"
+          visible={this.state.modalVisible}
+          transparent={true}
+          onRequestClose={() => {
+            this.setModalVisible(!this.state.modalVisible);
+            //alert("Modal has been closed.");
+          }}>
+          <View style={styles.modalView}>
+            <View
+              style={{
+                backgroundColor: 'grey',
+                padding: 10,
+              }}>
+              <Ionicons
+                name="window-close"
+                size={30}
+                color="white"
+                onPress={() => {
+                  this.setModalVisible(!this.state.modalVisible);
+                }}
+              />
+            </View>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'grey',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Ionicons
+                name="crown"
+                size={45}
+                color="white"
+                style={{
+                  marginBottom: 30,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 17,
+                  color: 'white',
+                  fontWeight: 'bold',
+                }}>
+                REMOVE ADS
+              </Text>
+              <Text style={styles.modalText}>
+                Enjoy and ad - free experience while controlling your budget
+              </Text>
+              <TouchableHighlight
+                style={styles.openButton}
+                onPress={this.purchasePremium}>
+                <View
+                  style={{
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      color: 'white',
+                    }}>
+                    Go Premium
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      width: screen.width / 3,
+                      justifyContent: 'center',
+                    }}>
+                    <Ionicons
+                      name={'lira-sign'}
+                      size={15}
+                      color={'white'}
+                      style={{
+                        paddingTop: 2,
+                      }}
+                    />
+                    <Text style={styles.textStyle}> 1.00 </Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -322,6 +402,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     padding: 10,
+  },
+  imageView: {
+    flex: 1,
+    width: 80,
+    height: 110,
+    resizeMode: 'cover',
+    borderRadius: 400 / 2,
   },
   btnContainer: {
     marginTop: 20,
