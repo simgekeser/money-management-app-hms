@@ -12,6 +12,7 @@
   "dependencies": {
     "@hmscore/react-native-hms-account": "^5.0.0",
     "@hmscore/react-native-hms-iap": "^5.0.0",
+    "@hmscore/react-native-hms-map": "^5.0.1-300",
     "@hmscore/react-native-hwpush": "^4.0.4",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/masked-view": "^0.1.10",

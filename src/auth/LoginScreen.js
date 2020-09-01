@@ -1,38 +1,43 @@
 import React, {Component} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  NativeModules,
+  DeviceEventEmitter,
+} from 'react-native';
 import RNHMSAccount from '@hmscore/react-native-hms-account';
-import AsyncStorage from '@react-native-community/async-storage';
+import Ionicons from 'react-native-vector-icons/FontAwesome5';
 
 export class LoginScreen extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {};
-  }
-
   render() {
     const onSignIn = () => {
       console.log('clicked');
-      let signInData = {
-        huaweiIdAuthParams:
-          RNHMSAccount.HmsAccount
-            .CONSTANT_HUAWEI_ID_AUTH_PARAMS_DEFAULT_AUTH_REQUEST_PARAM,
-        scopes: [RNHMSAccount.HmsAccount.SCOPE_ID_TOKEN],
-      };
-      RNHMSAccount.HmsAccount.signIn(signInData)
-        .then(response => {
-          console.log(response);
-
-          this.props.navigation.navigate('HomeScreen', {
-            name: response.familyName,
-            photoUri: response.avatarUriString,
-          });
-        })
-        .catch(err => {
-          console.log(err);
-        });
+      NativeModules.HMSAuthservice.signInWithHuaweiAccount().then(account => {
+        if (account !== undefined) {
+          console.log('username', account);
+          DeviceEventEmitter.emit('dashboardEmitterLogin', true);
+        } else {
+          console.log('username error', user);
+          DeviceEventEmitter.emit('dashboardEmitterLogin', false);
+        }
+      });
     };
-
+    const signInWithAnonymousAccount = () => {
+      console.log('clicked');
+      NativeModules.HMSAuthservice.signInWithAnonymousAccount().then(
+        account => {
+          if (account !== undefined) {
+            console.log('signInResult', account);
+            DeviceEventEmitter.emit('dashboardEmitterLogin', true);
+          } else {
+            console.log('username error', user);
+            DeviceEventEmitter.emit('dashboardEmitterLogin', false);
+          }
+        },
+      );
+    };
     return (
       <View style={styles.main}>
         <View style={styles.container}>
@@ -64,6 +69,11 @@ export class LoginScreen extends Component {
             }
             onPress={onSignIn}
           />
+          <TouchableOpacity
+            style={styles.viewcontainer}
+            onPress={signInWithAnonymousAccount}>
+            <Text>Login Anonymously</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -85,5 +95,8 @@ const styles = StyleSheet.create({
   viewcontainer: {
     marginTop: 20,
     height: 38,
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    padding: 10,
   },
 });
