@@ -9,11 +9,13 @@ import androidx.annotation.NonNull;
 
 import com.budgetreactnativedemo.MainActivity;
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
 import com.huawei.agconnect.auth.AGConnectAuth;
 import com.huawei.agconnect.auth.AGConnectAuthCredential;
 import com.huawei.agconnect.auth.AGConnectUser;
@@ -85,12 +87,25 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
 
      @ReactMethod
      private void getCurrentUser(final Promise promise){
-        if(AGConnectAuth.getInstance().getCurrentUser()!=null){
-            Log.i("user android",AGConnectAuth.getInstance().getCurrentUser().toString());
-            promise.resolve(AGConnectAuth.getInstance().getCurrentUser().getPhotoUrl());
-        }else{
-            promise.resolve(null);
-        }
+        AGConnectUser user = AGConnectAuth.getInstance().getCurrentUser();
+         WritableMap map = Arguments.createMap();
+            Log.i("get current user info", String.valueOf(AGConnectAuth.getInstance().getCurrentUser()));
+         if (user != null) {
+             if(user.isAnonymous()){
+                 map.putString("displayName", "Anonymous");
+
+             }else{
+                 map.putString("displayName", user.getDisplayName());
+                 map.putString("idToken", user.getUid());
+                 map.putString("email", user.getEmail());
+                 map.putString("phone", user.getPhone());
+                 map.putString("photoUriString", user.getPhotoUrl());
+             }
+             promise.resolve(map);
+         }else{
+             promise.resolve(null);
+         }
+
     }
 
     @Override

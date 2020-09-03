@@ -57,13 +57,15 @@ export class ProfilScreen extends Component {
     const limit = JSON.parse(await AsyncStorage.getItem('limit'));
     const budget = JSON.parse(await AsyncStorage.getItem('budget'));
 
-    NativeModules.HMSAuthservice.getCurrentUser().then(userPhoto => {
-      console.log('userprofil', userPhoto);
-      if (userPhoto !== null) {
-        this.setState({photoUriString: userPhoto});
-        console.log('userprofil', user);
+    NativeModules.HMSAuthservice.getCurrentUser().then(currentUser => {
+      console.log('currentUser', currentUser);
+      if (currentUser !== null) {
+        this.setState({
+          photoUriString: currentUser.photoUriString,
+          name: currentUser.displayName,
+        });
       } else {
-        console.log('userprofil error', user);
+        console.log('current user error', user);
       }
     });
     this.setState({
@@ -73,7 +75,7 @@ export class ProfilScreen extends Component {
       placeHolderBudget: budget,
     });
 
-    console.log('limit', this.state.limit);
+    //console.log('limit', this.state.limit);
     if (!isPremium) {
       this.setState({
         modalVisible: true,

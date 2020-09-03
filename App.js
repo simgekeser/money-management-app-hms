@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {NativeModules, View, StyleSheet, ActivityIndicator} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {createStackNavigator, HeaderBackButton} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import {LoginScreen} from './src/auth';
 import {
   HomeScreen,
@@ -121,7 +121,7 @@ export default function App() {
     });
     return () => {};
   }, [isLogged]);
-  console.log('logged', isLogged);
+  console.log('loggedIn', isLogged);
 
   return isLoading ? (
     <View style={styles.container}>
