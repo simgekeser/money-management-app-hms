@@ -1,24 +1,22 @@
 import React, {Component} from 'react';
-import {View, StyleSheet, Picker} from 'react-native';
-import MapView from '@hmscore/react-native-hms-map';
+import {View, StyleSheet} from 'react-native';
+import MapViewHMS, {Marker} from '@hmscore/react-native-hms-map';
 
 export class MapDetailScreen extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      selectedPage: 'marker',
-    };
   }
 
   render() {
-    const region = {
-      latitude: 41.01074,
-      longitude: 28.997436,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    };
-    return <MapView />;
+    return (
+      <MapViewHMS camera={{target: {latitude: 41, longitude: 29}, zoom: 10}}>
+        <Marker //Simple example
+          coordinate={{latitude: 41, longitude: 29}}
+          title="Hello Huawei Map"
+          snippet="This is a snippet!"
+        />
+      </MapViewHMS>
+    );
   }
 }
 

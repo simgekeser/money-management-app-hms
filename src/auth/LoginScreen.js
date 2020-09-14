@@ -8,7 +8,6 @@ import {
   DeviceEventEmitter,
 } from 'react-native';
 import RNHMSAccount from '@hmscore/react-native-hms-account';
-import Ionicons from 'react-native-vector-icons/FontAwesome5';
 
 export class LoginScreen extends Component {
   render() {
@@ -38,6 +37,7 @@ export class LoginScreen extends Component {
         },
       );
     };
+
     return (
       <View style={styles.main}>
         <View style={styles.container}>
@@ -71,8 +71,13 @@ export class LoginScreen extends Component {
           />
           <TouchableOpacity
             style={styles.viewcontainer}
-            onPress={signInWithAnonymousAccount}>
+            onPress={() => NativeModules.HMSIdentity.getUserAddress()}>
             <Text>Login Anonymously</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.viewcontainer}
+            onPress={() => this.props.navigation.navigate('LoginDetailScreen')}>
+            <Text>Login With Email</Text>
           </TouchableOpacity>
         </View>
       </View>

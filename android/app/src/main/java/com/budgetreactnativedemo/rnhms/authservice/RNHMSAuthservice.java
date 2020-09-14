@@ -2,15 +2,13 @@ package com.budgetreactnativedemo.rnhms.authservice;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.budgetreactnativedemo.MainActivity;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -19,13 +17,17 @@ import com.facebook.react.bridge.WritableMap;
 import com.huawei.agconnect.auth.AGConnectAuth;
 import com.huawei.agconnect.auth.AGConnectAuthCredential;
 import com.huawei.agconnect.auth.AGConnectUser;
+import com.huawei.agconnect.auth.EmailAuthProvider;
+import com.huawei.agconnect.auth.EmailUser;
 import com.huawei.agconnect.auth.HwIdAuthProvider;
 import com.huawei.agconnect.auth.SignInResult;
+import com.huawei.agconnect.auth.VerifyCodeResult;
+import com.huawei.agconnect.auth.VerifyCodeSettings;
 import com.huawei.hmf.tasks.OnFailureListener;
 import com.huawei.hmf.tasks.OnSuccessListener;
 import com.huawei.hmf.tasks.Task;
+import com.huawei.hmf.tasks.TaskExecutors;
 import com.huawei.hms.common.ApiException;
-import com.huawei.hms.support.api.client.Status;
 import com.huawei.hms.support.hwid.HuaweiIdAuthManager;
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParams;
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParamsHelper;
@@ -33,6 +35,8 @@ import com.huawei.hms.support.hwid.result.AuthHuaweiId;
 import com.huawei.hms.support.hwid.service.HuaweiIdAuthService;
 
 import org.json.JSONException;
+
+import java.util.Locale;
 
 public class RNHMSAuthservice extends ReactContextBaseJavaModule implements ActivityEventListener{
     private static final String TAG = "Auth Service";
@@ -52,21 +56,7 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
         return "HMSAuthservice";
     }
 
-    private void transmitTokenIntoAppGalleryConnect(String accessToken) {
-        AGConnectAuthCredential credential = HwIdAuthProvider.credentialWithToken(accessToken);
-        AGConnectAuth.getInstance().signIn(credential).addOnSuccessListener(new OnSuccessListener<SignInResult>() {
-            @Override
-            public void onSuccess(SignInResult signInResult) {
-                    Log.d(TAG,"successfully");
-
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(Exception e) {
-                Log.d(TAG, "Error " + e);
-            }
-        });
-    }
+    
     @ReactMethod
     private void signInWithHuaweiAccount(final Promise mPromise) {
         this.mPromise = mPromise;
@@ -84,7 +74,88 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
          AGConnectAuth.getInstance().deleteUser();
      }
 
+     @ReactMethod
+     private void verifyEmail(String email, Promise promise){
+         VerifyCodeSettings verifyCodeSettings = VerifyCodeSettings.newBuilder()
+                 .action(VerifyCodeSettings.ACTION_REGISTER_LOGIN)
+                 .sendInterval(30) //Minimum gönderme aralığı 30-120 sn. aralığındadır.
+                 .locale(Locale.getDefault()) //İsteğe bağlı olarak doğrulama kodunun gönderildiği dil seçimi.
+                 .build();
+         Task<VerifyCodeResult> task = EmailAuthProvider.requestVerifyCode(email, verifyCodeSettings);
+         task.addOnSuccessListener(TaskExecutors.uiThread(), new OnSuccessListener<VerifyCodeResult>() {
+             @Override
+             public void onSuccess(VerifyCodeResult verifyCodeResult) {
+                 promise.resolve(verifyCodeResult.getValidityPeriod());
+                 Toast.makeText(mContext, "Please check your e-mail", Toast.LENGTH_SHORT).show();
+             }
+         }).addOnFailureListener(TaskExecutors.uiThread(), new OnFailureListener() {
+             @Override
+             public void onFailure(Exception e) {
 
+                 promise.resolve(e.getMessage());
+                // Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+             }
+         });
+     }
+    @ReactMethod
+     private void registerWithEmail(String email,String verificationCode,Promise promise) {
+        WritableMap map = Arguments.createMap();
+
+        EmailUser emailUser = new EmailUser.Builder()
+                .setEmail(email)
+                .setVerifyCode(verificationCode)
+                .build();
+
+        AGConnectAuth.getInstance().createUser(emailUser)
+                .addOnSuccessListener(new OnSuccessListener<SignInResult>() {
+                    @Override
+                    public void onSuccess(SignInResult signInResult) {
+                        Toast.makeText(mContext, "User successfully created.", Toast.LENGTH_SHORT).show();
+                        Log.i(TAG,signInResult.toString());
+                        map.putString("displayName", signInResult.getUser().getDisplayName());
+                        map.putString("idToken", signInResult.getUser().getUid());
+                        map.putString("email", signInResult.getUser().getEmail());
+                        map.putString("phone", signInResult.getUser().getPhone());
+                        map.putString("photoUriString", signInResult.getUser().getPhotoUrl());
+
+                        promise.resolve(map);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception e) {
+                        promise.resolve(null);
+                        Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    @ReactMethod
+    private void signInWithEmail(String email, String verificationCode,Promise promise){
+        WritableMap map = Arguments.createMap();
+        AGConnectAuthCredential credential = EmailAuthProvider
+                .credentialWithVerifyCode(email,null,verificationCode);
+
+        AGConnectAuth.getInstance().signIn(credential)
+                .addOnSuccessListener(new OnSuccessListener<SignInResult>() {
+                    @Override
+                    public void onSuccess(SignInResult signInResult) {
+                        Toast.makeText(mContext, "Successfully Login", Toast.LENGTH_SHORT).show();
+                        map.putString("displayName", signInResult.getUser().getDisplayName());
+                        map.putString("idToken", signInResult.getUser().getUid());
+                        map.putString("email", signInResult.getUser().getEmail());
+                        map.putString("phone", signInResult.getUser().getPhone());
+                        map.putString("photoUriString", signInResult.getUser().getPhotoUrl());
+
+                        promise.resolve(map);
+                        //startActivity(new Intent(getApplicationContext(), HomeActivity.class));
+                    }})
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception e) {
+                        Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        promise.resolve(null);
+                    }});
+    }
      @ReactMethod
      private void getCurrentUser(final Promise promise){
         AGConnectUser user = AGConnectAuth.getInstance().getCurrentUser();
@@ -93,7 +164,6 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
          if (user != null) {
              if(user.isAnonymous()){
                  map.putString("displayName", "Anonymous");
-
              }else{
                  map.putString("displayName", user.getDisplayName());
                  map.putString("idToken", user.getUid());
@@ -105,7 +175,6 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
          }else{
              promise.resolve(null);
          }
-
     }
 
     @Override
@@ -141,6 +210,22 @@ public class RNHMSAuthservice extends ReactContextBaseJavaModule implements Acti
             public void onFailure(Exception e) {
                 Log.d(TAG, "Error " + e);
                 promise.reject(e.toString());
+            }
+        });
+    }
+
+    private void transmitTokenIntoAppGalleryConnect(String accessToken) {
+        AGConnectAuthCredential credential = HwIdAuthProvider.credentialWithToken(accessToken);
+        AGConnectAuth.getInstance().signIn(credential).addOnSuccessListener(new OnSuccessListener<SignInResult>() {
+            @Override
+            public void onSuccess(SignInResult signInResult) {
+                Log.d(TAG,"successfully");
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(Exception e) {
+                Log.d(TAG, "Error " + e);
             }
         });
     }

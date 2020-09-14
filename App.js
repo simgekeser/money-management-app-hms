@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {NativeModules, View, StyleSheet, ActivityIndicator} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
-import {LoginScreen} from './src/auth';
+import {LoginScreen, LoginDetailScreen} from './src/auth';
 import {
   HomeScreen,
   ProfilScreen,
@@ -23,7 +23,7 @@ function AuthStack() {
     <StackApp.Navigator initialRouteName="LoginScreen">
       <StackApp.Screen
         name="LoginScreen"
-        component={LoginScreen}
+        component={LoginStack}
         options={navOptionHandler}
       />
       <StackApp.Screen
@@ -32,6 +32,22 @@ function AuthStack() {
         options={navOptionHandler}
       />
     </StackApp.Navigator>
+  );
+}
+function LoginStack() {
+  return (
+    <Stack.Navigator initialRouteName="Login">
+      <Stack.Screen
+        name="LoginScreen"
+        component={LoginScreen}
+        options={navOptionHandler}
+      />
+      <Stack.Screen
+        name="LoginDetailScreen"
+        component={LoginDetailScreen}
+        options={navOptionHandler}
+      />
+    </Stack.Navigator>
   );
 }
 
